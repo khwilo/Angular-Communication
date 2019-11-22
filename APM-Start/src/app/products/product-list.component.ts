@@ -1,35 +1,45 @@
-import { Component, OnInit } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  ElementRef,
+  ViewChildren,
+  QueryList
+} from "@angular/core";
 
 import { IProduct } from "./product";
 import { ProductService } from "./product.service";
+import { NgModel } from "@angular/forms";
+import { Subscription } from "rxjs/Subscription";
 
 @Component({
   templateUrl: "./product-list.component.html",
   styleUrls: ["./product-list.component.css"]
 })
-export class ProductListComponent implements OnInit {
+export class ProductListComponent implements OnInit, AfterViewInit {
   pageTitle: string = "Product List";
   showImage: boolean;
+  listFilter: string;
 
   imageWidth: number = 50;
   imageMargin: number = 2;
   errorMessage: string;
 
-  private _listFilter: string;
-
-  get listFilter(): string {
-    return this._listFilter;
-  }
-
-  set listFilter(value: string) {
-    this._listFilter = value;
-    this.performFilter(this._listFilter);
-  }
+  @ViewChild("filterElement") filterElementRef: ElementRef;
+  @ViewChild(NgModel) filterInput: NgModel;
 
   filteredProducts: IProduct[];
   products: IProduct[];
 
   constructor(private productService: ProductService) {}
+
+  ngAfterViewInit() {
+    this.filterInput.valueChanges.subscribe(() =>
+      this.performFilter(this.listFilter)
+    );
+    this.filterElementRef.nativeElement.focus();
+  }
 
   ngOnInit(): void {
     this.productService.getProducts().subscribe(
